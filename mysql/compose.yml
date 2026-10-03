@@ -1,0 +1,39 @@
+services:
+  mysql:
+    image: mysql:8.4
+
+    container_name: mysql
+
+    restart: unless-stopped
+
+    # Only the root password is passed in explicitly. Using env_file here would
+    # also inject every app's credentials from .env into this container.
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD must be set in .env}
+      # Root only via the socket inside the container (docker exec), never over TCP.
+      # Applied only when the data volume is first initialised.
+      MYSQL_ROOT_HOST: localhost
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+    networks:
+      - database
+
+    ports:
+      - "127.0.0.1:3306:3306"
+
+    healthcheck:
+      # MYSQL_PWD keeps the password out of the process list inside the container
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$$MYSQL_ROOT_PASSWORD\" mysqladmin ping -h localhost -u root"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  mysql_data:
+
+networks:
+  database:
+    external: true

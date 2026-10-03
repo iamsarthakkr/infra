@@ -1,0 +1,5 @@
+# Fixed project name so volume names don't depend on the checkout folder's name
+name: infra
+
+include:
+  - mysql/compose.yml
